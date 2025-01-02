@@ -1,0 +1,11 @@
+side1,side2,side3,side4,side5,correct,incorrect,prev_corr,last_date
+cat,ねこ,neko,猫,noun,0,0,True,12/01/2024
+dog,いぬ,inu,犬,noun,2,0,True,12/01/2024
+chair,いす,isu,椅子,noun,4,1,True,12/05/2024
+desk,つくえ,tsukue,机,noun,4,0,True,12/05/2024
+to eat,たべる,taberu,食べる,verb,4,2,True,12/05/2024
+to play,あそぶ,asobu,遊ぶ,verb,6,6,True,12/10/2024
+quickly,はやい,hayai,早い,adj,6,4,True,12/10/2024
+great,すばらしい,subarashi,,adj,6,9,True,12/10/2024
+quickly,はやく,hayaku,早く,adv,8,2,True,12/12/2024
+delicious,おいしい,oishii,,adv,8,12,True,12/12/2024
