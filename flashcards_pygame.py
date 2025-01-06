@@ -1,4 +1,4 @@
-# Create Flashcard Tester with Pygame - Samantha Song - started 2024.12.16
+# Create Flashcard (FC) Tester with Pygame - Samantha Song - started 2024.12.16
 # Notes:
 #   Loads in flashcards from CSV
 #   Tests flashcards - Either all flashcards or just daily review
@@ -6,6 +6,15 @@
 #   Once flashcards have been tested, scores are updated
 #   Supports mouse clicks and hot keys
 #   Button hovers included
+
+# Additions starting 2025.01.06
+#   Keep testing flashcards until all are guessed correctly
+#   Keep track of FC indexes which are guessed incorrectly
+#   At end of FC testing, have continue option which continues testing
+
+# Major Changes starting 2025.01.06:
+#   Moved flashcard testing to its own function to allow for continued testing
+#   Additional hot keys for completed flashcard screen
 
 # Import Packages
 import pygame
@@ -26,9 +35,8 @@ today_format = today.strftime(date_format)
 fc_front_ind = [0, 2, 4]
 fc_back_ind = [1, 3]
 show_front = True
-to_test = range(rows)
 
-test_ind = 0
+gameOn = True
 
 # Screen Variables
 s_width = 800
@@ -122,13 +130,12 @@ class Button:
 
 # Prints the text of a single Flashcard
 def blit_text(surface, fc_index):
+    global show_front
     font = pygame.font.SysFont(font_name, font_size_large)
     line_num = 0
     # Defaults to back side
     fc_side_ind = fc_back_ind
     line_total = len(fc_back_ind)
-    fc_side_ind = fc_front_ind
-    line_total = len(fc_front_ind)
     # If front side needs to be shown
     if show_front:
         fc_side_ind = fc_front_ind
@@ -144,7 +151,6 @@ def blit_text(surface, fc_index):
         line_y += line_num * line_height
         surface.blit(line_surf, (line_x, line_y))
         line_num += 1
-
 
 # Flips Flashcard
 def flip():
@@ -166,14 +172,17 @@ def incorrect(fc_index):
     show_front = True
 
 # User goes back to Previous Flashcard
-def previous(fc_index):
+def previous(fc_index, test_more):
     global show_front
-    # If previously Correct
+    show_front = True
+    # If previously correct
     if fc_set.iloc[fc_index, prev_corr]:
         fc_set.iloc[fc_index, corr] -= 1
+        return test_more
     else:
         fc_set.iloc[fc_index, incorr] -= 1
-    show_front = True
+        test_more.pop()
+        return test_more
 
 # User Completes all Flashcards
 def end_screen(surface):
@@ -212,98 +221,28 @@ def daily_review():
     # Returns list of indexes to test from full list
     return daily_set
 
-# Saves data as CSV - Overrides current CSV
-def save(updated_fc_set = fc_set):
-    updated_fc_set.to_csv(fc_csv_name, index=False)
-
-# initialize pygame
-pygame.init()
- 
-# Define the dimensions of screen object
-screen = pygame.display.set_mode((s_width, s_height))
-pygame.display.set_caption('Flashcard Test')
-
-# Initialize Flashcard Testing Buttons
-corr_b = Button("Correct", comp_1, bg_color, xr_pos, yd_pos)
-incorr_b = Button("Incorrect", comp_2, bg_color, xl_pos, yd_pos)
-back_b = Button("Go Back", light_color, text_color, xc_pos, yd_pos)
-
-# Initialize Other Buttons
-home_b = Button("Go Home", comp_2, bg_color, xl_pos, yd_pos)
-conf_b = Button("Confirm", comp_1, bg_color, xr_pos, yd_pos)
-
-# Initialize Start Screen Buttons
-test_all_b = Button("Test All", light_color, text_color, xc_pos, y2_pos)
-daily_b = Button("Daily", comp_1, bg_color, xc_pos, y3_pos)
-
-# Variable to keep our game loop running
-gameOn = True
-
-#Variable to Determine Game State 
-#   0 - Start Game Screen
-#   1 - Flashcards
-#   2 - Add Flashcard?
-#   3 - Remove Flashcard?
-game_state = 0
-daily = True
-
-# Game loop
-while gameOn:
-    # for loop through the event queue
-    for event in pygame.event.get():
+# Test Flashcards - given list of indexes to test
+def test_all(to_test = range(rows), daily=False):
+    global gameOn, screen
+    test_ind = 0
+    test_more = []
+    if len(to_test) == 0:
         screen.fill(bg_color)
-        # Check to Quit Game      
-        if event.type == KEYDOWN:
-            # If the Backspace key has been pressed set
-            # running to false to exit the main loop
-            if event.key == K_BACKSPACE:
-                gameOn = False
-        # Check for QUIT event
-        elif event.type == QUIT:
-            gameOn = False
-
-        if game_state == 0: # Start Screen
-            # Hot Key Options
+        return 0
+    while gameOn:
+        # for loop through the event queue
+        for event in pygame.event.get():
+            screen.fill(bg_color)
+            # Check to Quit Game      
             if event.type == KEYDOWN:
-                # Pressing 1 - Tests all Flashcards
-                if event.key == K_1:
-                    to_test = range(rows)
-                    daily = False
-                    test_ind = 0
-                    game_state = 1
-                # Pressing 2 - Tests Daily Review
-                if event.key == K_2:
-                    to_test = daily_review()
-                    # Only allows Daily Review if there are FC to test
-                    if len(to_test) != 0:
-                        daily = True
-                        test_ind = 0
-                        game_state = 1
-            # Mouse Click Options
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                if test_all_b.rect.collidepoint(event.pos):
-                    to_test = range(rows)
-                    daily = False
-                    test_ind = 0
-                    game_state = 1
-                if daily_b.rect.collidepoint(event.pos):
-                    to_test = daily_review()
-                    daily = True
-                    test_ind = 0
-                    game_state = 1
-            # Shows Buttons
-            # Only shows Daily Review if not done yet
-            if len(daily_review()) > 0:
-                if daily_b.rect.collidepoint(pygame.mouse.get_pos()):
-                    daily_b.hover_draw()
-                else:
-                    daily_b.draw()
-            if test_all_b.rect.collidepoint(pygame.mouse.get_pos()):
-                test_all_b.hover_draw()
-            else:
-                test_all_b.draw()
+                # If the Backspace key has been pressed set
+                # running to false to exit the main loop
+                if event.key == K_BACKSPACE:
+                    gameOn = False
+            # Check for QUIT event
+            elif event.type == QUIT:
+                gameOn = False
 
-        if game_state == 1: # Testing Flashcards
             # Hot Key Options
             if event.type == KEYDOWN:
                 # There are still Flashcards to test
@@ -312,22 +251,27 @@ while gameOn:
                         flip()
                     elif event.key == K_f:
                         incorrect(to_test[test_ind])
+                        test_more.append(to_test[test_ind])
                         test_ind += 1
                     elif event.key == K_j:
                         correct(to_test[test_ind])
                         if daily:
                             fc_set.iloc[to_test[test_ind], last_date] = today_format
                         test_ind += 1
-                # Complete testing flashcards & save data
+                # There are no more Flashcards to test
                 else:
-                    if event.key == K_SPACE:
-                        game_state = 0
+                    if event.key == K_f:
                         save()
+                        screen.fill(bg_color)
+                        return 1
+                    elif event.key == K_j:
+                        save()
+                        return test_all(to_test=test_more)
                 # If there are flashcards to go back to
                 if test_ind > 0:
                     if event.key == K_b:
                         test_ind -= 1
-                        previous(to_test[test_ind])
+                        test_more = previous(to_test[test_ind], test_more)
             # Mouse Click Options
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 # There are still Flashcards to test
@@ -336,6 +280,7 @@ while gameOn:
                         flip()
                     elif incorr_b.rect.collidepoint(event.pos):
                         incorrect(to_test[test_ind])
+                        test_more.append(to_test[test_ind])
                         test_ind += 1
                     elif corr_b.rect.collidepoint(event.pos):
                         correct(to_test[test_ind])
@@ -345,13 +290,17 @@ while gameOn:
                 # Complete testing flashcards & save data
                 else:
                     if home_b.rect.collidepoint(event.pos):
-                        game_state = 0
                         save()
+                        screen.fill(bg_color)
+                        return 1
+                    elif cont_b.rect.collidepoint(event.pos):
+                        save()
+                        return test_all(to_test=test_more)
                 # If there are flashcards to go back to
                 if test_ind > 0:
                     if back_b.rect.collidepoint(event.pos):
                         test_ind -= 1
-                        previous(to_test[test_ind])
+                        test_more = previous(to_test[test_ind], test_more)
             # Displays Flashcard and appropriate buttons
             if fc_rect.collidepoint(pygame.mouse.get_pos()):
                 pygame.draw.rect(screen, fc_bg_color, fc_rect, 2, border_radius=fc_radius)
@@ -373,11 +322,83 @@ while gameOn:
                     home_b.hover_draw()
                 else:
                     home_b.draw()
+                if len(test_more) != 0:
+                    if cont_b.rect.collidepoint(pygame.mouse.get_pos()):
+                        cont_b.hover_draw()
+                    else:
+                        cont_b.draw()
             if test_ind > 0:
                 if back_b.rect.collidepoint(pygame.mouse.get_pos()):
                     back_b.hover_draw()
                 else:
                     back_b.draw()
+            # Update the display using flip
+            pygame.display.flip()
+
+# Saves data as CSV - Overrides current CSV
+def save(updated_fc_set = fc_set):
+    updated_fc_set.to_csv(fc_csv_name, index=False)
+
+# initialize pygame
+pygame.init()
+ 
+# Define the dimensions of screen object
+screen = pygame.display.set_mode((s_width, s_height))
+pygame.display.set_caption('Flashcard Test')
+
+# Initialize Flashcard Testing Buttons
+corr_b = Button("Correct", comp_1, bg_color, xr_pos, yd_pos)
+incorr_b = Button("Incorrect", comp_2, bg_color, xl_pos, yd_pos)
+back_b = Button("Go Back", light_color, text_color, xc_pos, yd_pos)
+
+# Initialize Other Buttons
+home_b = Button("Go Home", comp_2, bg_color, xl_pos, yd_pos)
+cont_b = Button("Continue", comp_1, bg_color, xr_pos, yd_pos)
+
+# Initialize Start Screen Buttons
+test_all_b = Button("Test All", light_color, text_color, xc_pos, y2_pos)
+daily_b = Button("Daily", comp_1, bg_color, xc_pos, y3_pos)
+
+# Game loop - Start Screen
+while gameOn:
+    # for loop through the event queue
+    for event in pygame.event.get():
+        screen.fill(bg_color)
+        # Check to Quit Game      
+        if event.type == KEYDOWN:
+            # If the Backspace key has been pressed set
+            # running to false to exit the main loop
+            if event.key == K_BACKSPACE:
+                gameOn = False
+        # Check for QUIT event
+        elif event.type == QUIT:
+            gameOn = False
+
+        # Hot Key Options
+        if event.type == KEYDOWN:
+            # Pressing 1 - Tests all Flashcards
+            if event.key == K_1:
+                test_all()
+            # Pressing 2 - Tests Daily Review
+            if event.key == K_2:
+                test_all(to_test=daily_review(), daily=True)
+        # Mouse Click Options
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            if test_all_b.rect.collidepoint(event.pos):
+                test_all()
+            if daily_b.rect.collidepoint(event.pos):
+                test_all(to_test=daily_review(), daily=True)
+        # Shows Buttons
+        # Only shows Daily Review if not done yet
+        if len(daily_review()) > 0:
+            if daily_b.rect.collidepoint(pygame.mouse.get_pos()):
+                daily_b.hover_draw()
+            else:
+                daily_b.draw()
+        if test_all_b.rect.collidepoint(pygame.mouse.get_pos()):
+            test_all_b.hover_draw()
+        else:
+            test_all_b.draw()
 
     # Update the display using flip
     pygame.display.flip()
