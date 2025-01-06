@@ -168,10 +168,11 @@ def incorrect(fc_index):
 # User goes back to Previous Flashcard
 def previous(fc_index):
     global show_front
-    if fc_set.iloc[fc_index - 1, prev_corr]:
-        fc_set.iloc[fc_index - 1, corr] -= 1
+    # If previously Correct
+    if fc_set.iloc[fc_index, prev_corr]:
+        fc_set.iloc[fc_index, corr] -= 1
     else:
-        fc_set.iloc[fc_index - 1, incorr] -= 1
+        fc_set.iloc[fc_index, incorr] -= 1
     show_front = True
 
 # User Completes all Flashcards
