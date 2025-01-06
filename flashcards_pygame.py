@@ -124,32 +124,27 @@ class Button:
 def blit_text(surface, fc_index):
     font = pygame.font.SysFont(font_name, font_size_large)
     line_num = 0
-    if show_front: # Prints Front of Flashcard
+    # Defaults to back side
+    fc_side_ind = fc_back_ind
+    line_total = len(fc_back_ind)
+    fc_side_ind = fc_front_ind
+    line_total = len(fc_front_ind)
+    # If front side needs to be shown
+    if show_front:
+        fc_side_ind = fc_front_ind
         line_total = len(fc_front_ind)
-        for i in fc_front_ind:
-            if pd.isna(fc_set.iloc[fc_index, i]):
-                line_surf = font.render("", 1, text_color)
-            else:
-                line_surf = font.render(fc_set.iloc[fc_index, i], 1, text_color)
-            line_width, line_height = line_surf.get_size()
-            line_x = (s_width - line_width) / 2
-            line_y = fc_y_mid - (line_total * line_height) / 2
-            line_y += line_num * line_height
-            surface.blit(line_surf, (line_x, line_y))
-            line_num += 1
-    else: # Prints Back of Flashcard
-        line_total = len(fc_back_ind)
-        for i in fc_back_ind:
-            if pd.isna(fc_set.iloc[fc_index, i]):
-                line_surf = font.render("", 1, text_color)
-            else:
-                line_surf = font.render(fc_set.iloc[fc_index, i], 1, text_color)
-            line_width, line_height = line_surf.get_size()
-            line_x = (s_width - line_width) / 2
-            line_y = fc_y_mid - (line_total * line_height) / 2
-            line_y += line_num * line_height
-            surface.blit(line_surf, (line_x, line_y))
-            line_num += 1
+    for i in fc_side_ind:
+        if pd.isna(fc_set.iloc[fc_index, i]):
+            line_surf = font.render("", 1, text_color)
+        else:
+            line_surf = font.render(fc_set.iloc[fc_index, i], 1, text_color)
+        line_width, line_height = line_surf.get_size()
+        line_x = (s_width - line_width) / 2
+        line_y = fc_y_mid - (line_total * line_height) / 2
+        line_y += line_num * line_height
+        surface.blit(line_surf, (line_x, line_y))
+        line_num += 1
+
 
 # Flips Flashcard
 def flip():
@@ -278,9 +273,11 @@ while gameOn:
                 # Pressing 2 - Tests Daily Review
                 if event.key == K_2:
                     to_test = daily_review()
-                    daily = True
-                    test_ind = 0
-                    game_state = 1
+                    # Only allows Daily Review if there are FC to test
+                    if len(to_test) != 0:
+                        daily = True
+                        test_ind = 0
+                        game_state = 1
             # Mouse Click Options
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 if test_all_b.rect.collidepoint(event.pos):
