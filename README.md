@@ -65,6 +65,10 @@ While the user can use their mouse to click on the buttons and flashcards to sel
   - j - Correct
   - b - Back
   - space bar - Flip Flashcard
+- Once flashcards have been tested:
+  - f - Go Home
+  - j - Continue
+  - b - Back
 
 ## Printing Text
 One main difference between the previous versions and this pygame version is that printing text on new lines is not as straightforward.
@@ -140,3 +144,11 @@ class Button:
         y_center = self.y_pos + (b_height - text_height) / 2
         screen.blit(button_surf, (x_center, y_center))
 ```
+
+## Major Update - 2025.01.06
+The user can keep testing flashcards until they are all guessed correctly.
+This is done by keeping track of flashcard indexes which are guessed incorrectly, and if the user choses to continue after each round of flashcard testing, the list of indexes are passed on to be tested again.
+
+To aid in this, there have been major changes made to the code. Flashcard testing is now its own funtion ```test_all()``` which has the optional variables:
+- ```to_test``` - a list of flashcard indexes to test (by default, this is list of all flashcard indexes).
+- ```daily``` - a boolean determining if the flashcard is being tested is a part of the daily review (by default, this is False).
