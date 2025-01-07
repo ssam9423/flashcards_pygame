@@ -266,7 +266,7 @@ def test_all(to_test = range(rows), daily=False):
                         return 1
                     elif event.key == K_j:
                         save()
-                        return test_all(to_test=test_more)
+                        return test_all(to_test=test_more, daily=daily)
                 # If there are flashcards to go back to
                 if test_ind > 0:
                     if event.key == K_b:
@@ -295,7 +295,7 @@ def test_all(to_test = range(rows), daily=False):
                         return 1
                     elif cont_b.rect.collidepoint(event.pos):
                         save()
-                        return test_all(to_test=test_more)
+                        return test_all(to_test=test_more, daily=daily)
                 # If there are flashcards to go back to
                 if test_ind > 0:
                     if back_b.rect.collidepoint(event.pos):
