@@ -166,7 +166,7 @@ class Button:
 >```
 
 ## Textbox Class
-As there are a few textboxes in this game, a Textbox Class was created. 
+As there are a few textboxes in this game, a Textbox Class was created using the [Pygame Text Input Module](https://github.com/Nearoo/pygame-text-input) by [Nearoo](https://github.com/Nearoo/).
 The Textbox Class has multiple variables, but is consistent in size and color scheme.
 By default, a textbox will have no user input, and will display the text of associated button.
 (i.e. if the textbox is used to add flashcards and therefore associated with the add button, the textbox will display "Add".)
@@ -255,3 +255,6 @@ If no associated flashcard is found, then the text "The Flashcard does not Exist
 This is handled in the new functions ```remove()``` and ```search()```
 >[!IMPORTANT]
 >It is assumed that all flashcards have unique values for side1
+
+## Acknowledgements
+The Textbox Class relies on [Pygame Text Input Module](https://github.com/Nearoo/pygame-text-input) by [Nearoo](https://github.com/Nearoo/).
