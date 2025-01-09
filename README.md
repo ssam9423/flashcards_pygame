@@ -159,10 +159,10 @@ class Button:
 >It takes in a mouse position (```mouse_pos```) and displays either the default button or the hover button.
 >```
 >    def interact(self, mouse_pos=pygame.mouse.get_pos()):
-        if self.rect.collidepoint(mouse_pos):
-            self.hover_draw()
-        else:
-            self.draw()
+>       if self.rect.collidepoint(mouse_pos):
+>           self.hover_draw()
+>       else:
+>           self.draw()
 >```
 
 ## Textbox Class
